@@ -28,5 +28,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
-    compile 'com.github.AndroidZM233:ZMAndroidLog:-SNAPSHOT'
+    compile 'com.github.AndroidZM233:ZMAndroidLog:0aeb747d0a'
 }

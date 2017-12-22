@@ -8,9 +8,13 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.LinearLayout;
 
+import com.zm.utilslib.view.MovingView.MovingImageView;
+import com.zm.utilslib.view.MovingView.MovingViewAnimator;
 import com.zm.zmbletool.R;
 import com.zm.zmbletool.mvp.MVPBaseActivity;
+import com.zm.zmbletool.ui.classicservice.ClassicServiceActivity;
 
 
 /**
@@ -18,12 +22,17 @@ import com.zm.zmbletool.mvp.MVPBaseActivity;
  * 邮箱 784787081@qq.com
  */
 
-public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresenter> implements MainContract.View {
+public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresenter>
+        implements MainContract.View {
 
     private Toolbar mToolbar;
     private AppBarLayout mAppBar;
     private NavigationView mNvMenu;
     private DrawerLayout mDlRoot;
+    private LinearLayout mLlClassicClient;
+    private LinearLayout mLlClassicService;
+    private LinearLayout mLlLow;
+    private MovingImageView mivMenu;
 
     @Override
     public void initData(Bundle bundle) {
@@ -41,8 +50,47 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
         mDlRoot = findViewById(R.id.dl_root);
         mNvMenu = findViewById(R.id.nv_menu);
         mToolbar = findViewById(R.id.toolbar);
+        mLlClassicClient = findViewById(R.id.ll_classic_client);
+        mLlClassicClient.setOnClickListener(this);
+        mLlClassicService = findViewById(R.id.ll_classic_service);
+        mLlClassicService.setOnClickListener(this);
+        mLlLow = findViewById(R.id.ll_low);
+        mLlLow.setOnClickListener(this);
 
-        mToolbar.setTitle("首页");
+        //图片移动view移动
+        mivMenu = mNvMenu.getHeaderView(0).findViewById(R.id.miv_menu);
+        mDlRoot.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(View drawerView, float slideOffset) {
+                mivMenu.pauseMoving();
+            }
+
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                if (mivMenu.getMovingState() == MovingViewAnimator.MovingState.stop) {
+                    mivMenu.startMoving();
+                } else if (mivMenu.getMovingState() == MovingViewAnimator.MovingState.pause) {
+                    mivMenu.resumeMoving();
+                }
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                mivMenu.stopMoving();
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+                if (mivMenu.getMovingState() == MovingViewAnimator.MovingState.stop) {
+                    mivMenu.startMoving();
+                } else if (mivMenu.getMovingState() == MovingViewAnimator.MovingState.pause) {
+                    mivMenu.resumeMoving();
+                }
+            }
+        });
+
+
+        //监听toolbar点击事件开发侧栏
         mToolbar.setNavigationIcon(R.mipmap.ic_drawer_home);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -50,7 +98,6 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
                 onOpen();
             }
         });
-
     }
 
 
@@ -61,7 +108,17 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
 
     @Override
     public void onWidgetClick(View view) {
-
+        switch (view.getId()) {
+            case R.id.ll_classic_client:
+                break;
+            case R.id.ll_classic_service:
+                openAct(this, ClassicServiceActivity.class);
+                break;
+            case R.id.ll_low:
+                break;
+            default:
+                break;
+        }
     }
 
 
@@ -70,4 +127,6 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
             mDlRoot.openDrawer(GravityCompat.START);
         }
     }
+
+
 }
