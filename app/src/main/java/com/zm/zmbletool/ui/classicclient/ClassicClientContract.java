@@ -1,4 +1,4 @@
-package com.zm.zmbletool.ui.classicservice;
+package com.zm.zmbletool.ui.classicclient;
 
 import android.content.Context;
 
@@ -10,10 +10,8 @@ import com.zm.zmbletool.mvp.BaseView;
  * 邮箱 784787081@qq.com
  */
 
-public class ClassicServiceContract {
+public class ClassicClientContract {
     interface View extends BaseView {
-        void showToast(String msg);
-
         void showReceiveData(byte[] msg);
 
         void showStatus(String msg);

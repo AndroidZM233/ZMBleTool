@@ -2,6 +2,7 @@ package com.zm.zmbletool.ui.classicservice;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
@@ -10,6 +11,8 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.zm.utilslib.bean.MsgEvent;
+import com.zm.utilslib.utils.SharedXmlUtil;
+import com.zm.utilslib.utils.data.ByteUtils;
 import com.zm.zmbletool.mvp.BasePresenterImpl;
 
 import org.greenrobot.eventbus.EventBus;
@@ -36,9 +39,11 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
     //创建输出数据流
     private OutputStream outputStream = null;
     private static final String TAG = "ClassicService";
+    private Context mContext;
 
     @Override
-    public void startBluetooth() {
+    public void startBluetooth(Context context) {
+        this.mContext = context;
         defaultAdapter = BluetoothAdapter.getDefaultAdapter();
         if (defaultAdapter != null) {
             if (!defaultAdapter.isEnabled()) {
@@ -68,7 +73,9 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
         @SuppressLint("MissingPermission")
         public void run()//重写Thread的run方法
         {
-            UUID uuid = UUID.fromString("a60f35f0-b93a-11de-8a39-08002009c666");
+            String uuidStr = SharedXmlUtil.getInstance(mContext)
+                    .read("SERVICE_UUID", "00001101-0000-1000-8000-00805F9B34FB");
+            UUID uuid = UUID.fromString(uuidStr);
             String name = "bluetoothServer";
             try {
                 btServer = defaultAdapter.listenUsingRfcommWithServiceRecord(name, uuid);
@@ -79,19 +86,27 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
                 try {
                     SystemClock.sleep(10);
                     //监听连接 ，如果无连接就会处于阻塞状态，一直在这等着
-                    transferSocket = btServer.accept();
-                    mView.showStatus("连接成功\n");
+                    if (btServer != null) {
+                        transferSocket = btServer.accept();
+                    }
                     inputstream = transferSocket.getInputStream();
+                    BluetoothDevice device = transferSocket.getRemoteDevice();
+                    mView.showStatus(device.getAddress() + "连接成功");
                     if (mReceiveThread == null) {
                         mReceiveThread = new ReceiveThread();
                         mReceiveThread.start();
                         Log.d(TAG, "mReceiveThreadStart ");
+                    } else {
+                        mReceiveThread.interrupt();
+                        mReceiveThread = null;
+                        mReceiveThread = new ReceiveThread();
+                        mReceiveThread.start();
                     }
 
                 } catch (IOException e) {
                     e.printStackTrace();
                     Log.d(TAG, "ServerSocketThread: IOException");
-                    mView.showStatus("连接断开\n");
+//                    mView.showStatus("连接断开");
                 }
             }
         }
@@ -111,19 +126,24 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
         {
             while (!isInterrupted()) {
                 SystemClock.sleep(10);
-                int bytesRead = 0;
                 try {
-                    bytesRead = inputstream.read(buffer);
-                } catch (IOException e) {
+                    int bytesRead = 0;
+                    try {
+                        bytesRead = inputstream.read(buffer);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    if (bytesRead < 0) {
+                        mReceiveThread.interrupt();
+                        mReceiveThread = null;
+                        mView.showStatus("连接断开");
+                        continue;
+                    }
+                    byte[] arrayCopy = ByteUtils.arrayCopy(buffer, 0, bytesRead);
+                    mView.showReceiveData(arrayCopy);
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
-                if (bytesRead < 0) {
-                    mReceiveThread.interrupt();
-                    mReceiveThread = null;
-                    mView.showStatus("连接断开\n");
-                    continue;
-                }
-                mView.showReceiveData(buffer);
             }
         }
     }
@@ -145,7 +165,6 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
     @Override
     public void stopBluetooth() {
         try {
-            defaultAdapter=null;
             if (mServerSocketThread != null) {
                 mServerSocketThread.interrupt();
                 mServerSocketThread = null;
@@ -168,6 +187,7 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
                 btServer.close();
                 btServer = null;
             }
+            defaultAdapter = null;
         } catch (IOException e) {
             e.printStackTrace();
         }

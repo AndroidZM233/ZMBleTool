@@ -14,7 +14,11 @@ import com.zm.utilslib.view.MovingView.MovingImageView;
 import com.zm.utilslib.view.MovingView.MovingViewAnimator;
 import com.zm.zmbletool.R;
 import com.zm.zmbletool.mvp.MVPBaseActivity;
+import com.zm.zmbletool.ui.classicclient.ClassicClientActivity;
+import com.zm.zmbletool.ui.classicclient.ClassicScanActivity;
+import com.zm.zmbletool.ui.classicclient.ClientSetUUIDActivity;
 import com.zm.zmbletool.ui.classicservice.ClassicServiceActivity;
+import com.zm.zmbletool.ui.classicservice.ServiceSetUUIDActivity;
 
 
 /**
@@ -110,9 +114,10 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
     public void onWidgetClick(View view) {
         switch (view.getId()) {
             case R.id.ll_classic_client:
+                openAct(this, ClientSetUUIDActivity.class);
                 break;
             case R.id.ll_classic_service:
-                openAct(this, ClassicServiceActivity.class);
+                openAct(this, ServiceSetUUIDActivity.class);
                 break;
             case R.id.ll_low:
                 break;

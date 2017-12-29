@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Ble蓝牙调试</string>
+    <string name="search">蓝牙搜索</string>
 </resources>

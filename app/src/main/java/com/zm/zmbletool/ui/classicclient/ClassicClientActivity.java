@@ -1,24 +1,24 @@
-package com.zm.zmbletool.ui.classicservice;
+package com.zm.zmbletool.ui.classicclient;
 
 
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.Nullable;
-import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.zm.utilslib.utils.DateUtils;
 import com.zm.utilslib.utils.SharedXmlUtil;
@@ -38,8 +38,7 @@ import java.util.List;
  * 邮箱 784787081@qq.com
  */
 
-public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContract.View, ClassicServicePresenter> implements ClassicServiceContract.View {
-
+public class ClassicClientActivity extends MVPBaseActivity<ClassicClientContract.View, ClassicClientPresenter> implements ClassicClientContract.View {
     private Toolbar mToolbar;
     private RecyclerView mRvContent;
     private EditText mEtSendmessage;
@@ -64,13 +63,22 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
     @Override
     public void initView(Bundle bundle, View view) {
         mToolbar = findViewById(R.id.toolbar);
-        mToolbar.setTitle("服务端");
+        mToolbar.setTitle("客户端");
+        setSupportActionBar(mToolbar);
         mToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ClassicServiceActivity.this.finish();
+                ClassicClientActivity.this.finish();
             }
         });
+        mToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                openAct(getApplicationContext(), ClassicScanActivity.class);
+                return true;
+            }
+        });
+
 
         mRvContent = findViewById(R.id.rv_content);
         mEtSendmessage = findViewById(R.id.et_sendmessage);
@@ -82,14 +90,14 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
         mCbSend.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SharedXmlUtil.getInstance(ClassicServiceActivity.this).write("CB_SEND", b);
+                SharedXmlUtil.getInstance(ClassicClientActivity.this).write("Client_CB_SEND", b);
             }
         });
         mCbReceive = findViewById(R.id.cb_receive);
         mCbReceive.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                SharedXmlUtil.getInstance(ClassicServiceActivity.this).write("CB_RECEIVE", b);
+                SharedXmlUtil.getInstance(ClassicClientActivity.this).write("Client_CB_RECEIVE", b);
             }
         });
         mRlBottom = findViewById(R.id.rl_bottom);
@@ -122,15 +130,21 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
             }
         });
 
-        boolean cbSend = SharedXmlUtil.getInstance(this).read("CB_SEND", false);
+        boolean cbSend = SharedXmlUtil.getInstance(this).read("Client_CB_SEND", false);
         mCbSend.setChecked(cbSend);
-        boolean cbReceive = SharedXmlUtil.getInstance(this).read("CB_RECEIVE", false);
+        boolean cbReceive = SharedXmlUtil.getInstance(this).read("Client_CB_RECEIVE", false);
         mCbReceive.setChecked(cbReceive);
     }
 
 
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.classic_toolbar, menu);
+        return true;
+    }
+
     private void initRV() {
-        mAdapter = new MsgAdapter(ClassicServiceActivity.this
+        mAdapter = new MsgAdapter(ClassicClientActivity.this
                 , R.layout.rv_service, mList);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         mRvContent.setLayoutManager(layoutManager);
@@ -168,7 +182,7 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
                 break;
             case R.id.btn_send:
                 String toString = mEtSendmessage.getText().toString();
-                boolean cbSend = SharedXmlUtil.getInstance(this).read("CB_SEND", false);
+                boolean cbSend = SharedXmlUtil.getInstance(this).read("Client_CB_SEND", false);
                 byte[] bytes;
                 if (cbSend) {
                     bytes = StringUtils.hexStringToByteArray(toString);
@@ -196,14 +210,8 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
     }
 
     @Override
-    public void showToast(String msg) {
-        Toast.makeText(mActivity, msg, Toast.LENGTH_SHORT).show();
-    }
-
-
-    @Override
     public void showReceiveData(byte[] msg) {
-        boolean cbReceive = SharedXmlUtil.getInstance(this).read("CB_RECEIVE", false);
+        boolean cbReceive = SharedXmlUtil.getInstance(this).read("Client_CB_RECEIVE", false);
         String string = "";
         if (cbReceive) {
             string = ByteUtils.toHexString(msg);
