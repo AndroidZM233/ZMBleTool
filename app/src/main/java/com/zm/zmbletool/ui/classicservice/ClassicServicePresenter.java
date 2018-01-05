@@ -133,11 +133,11 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    if (bytesRead < 0) {
+                    if (bytesRead < 0 || bytesRead == 0) {
                         mReceiveThread.interrupt();
                         mReceiveThread = null;
                         mView.showStatus("连接断开");
-                        continue;
+                        return;
                     }
                     byte[] arrayCopy = ByteUtils.arrayCopy(buffer, 0, bytesRead);
                     mView.showReceiveData(arrayCopy);

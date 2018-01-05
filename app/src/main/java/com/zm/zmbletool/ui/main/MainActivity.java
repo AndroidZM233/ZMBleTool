@@ -14,6 +14,8 @@ import com.zm.utilslib.view.MovingView.MovingImageView;
 import com.zm.utilslib.view.MovingView.MovingViewAnimator;
 import com.zm.zmbletool.R;
 import com.zm.zmbletool.mvp.MVPBaseActivity;
+import com.zm.zmbletool.ui.ble.BleActivity;
+import com.zm.zmbletool.ui.ble.BleScanActivity;
 import com.zm.zmbletool.ui.classicclient.ClassicClientActivity;
 import com.zm.zmbletool.ui.classicclient.ClassicScanActivity;
 import com.zm.zmbletool.ui.classicclient.ClientSetUUIDActivity;
@@ -120,6 +122,7 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
                 openAct(this, ServiceSetUUIDActivity.class);
                 break;
             case R.id.ll_low:
+                openAct(this, BleScanActivity.class);
                 break;
             default:
                 break;

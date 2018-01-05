@@ -23,7 +23,7 @@ import java.util.UUID;
 public class MyApplication extends Application {
     private static MyApplication m_application; // 单例
     private volatile BluetoothSocket clientSocket = null;
-    private volatile BluetoothSocket bleClientSocket = null;
+    private volatile BluetoothDevice bluetoothDevice = null;
 
     public BluetoothSocket getClientSocket() {
         return clientSocket;
@@ -33,12 +33,12 @@ public class MyApplication extends Application {
         this.clientSocket = clientSocket;
     }
 
-    public BluetoothSocket getbleClientSocket() {
-        return bleClientSocket;
+    public BluetoothDevice getBluetoothDevice() {
+        return bluetoothDevice;
     }
 
-    public void setbleClientSocket(BluetoothSocket bleClientSocket) {
-        this.bleClientSocket = bleClientSocket;
+    public void setBluetoothDevice(BluetoothDevice bluetoothDevice) {
+        this.bluetoothDevice = bluetoothDevice;
     }
 
     @Override
@@ -52,7 +52,6 @@ public class MyApplication extends Application {
     public void onTerminate() {
         super.onTerminate();
         closeSocket();
-
     }
 
     /**
@@ -67,13 +66,8 @@ public class MyApplication extends Application {
                 e.printStackTrace();
             }
         }
-        if (bleClientSocket != null) {
-            try {
-                bleClientSocket.close();
-                bleClientSocket = null;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (bluetoothDevice != null) {
+            bluetoothDevice = null;
         }
     }
 

@@ -75,6 +75,7 @@ public class ClassicClientActivity extends MVPBaseActivity<ClassicClientContract
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 openAct(getApplicationContext(), ClassicScanActivity.class);
+                ClassicClientActivity.this.finish();
                 return true;
             }
         });

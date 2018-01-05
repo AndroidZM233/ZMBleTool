@@ -45,6 +45,15 @@
         <activity
             android:name=".ui.classicservice.ServiceSetUUIDActivity"
             android:windowSoftInputMode="adjustPan|stateHidden" />
+
+        <!--低功耗Ble界面-->
+        <activity
+            android:name=".ui.ble.BleActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+        <!--低功耗Ble搜索界面-->
+        <activity
+            android:name=".ui.ble.BleScanActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
     </application>
 
 </manifest>
