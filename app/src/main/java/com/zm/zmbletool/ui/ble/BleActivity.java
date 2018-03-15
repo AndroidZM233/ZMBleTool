@@ -1,42 +1,35 @@
 package com.zm.zmbletool.ui.ble;
 
 
+import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ExpandableListView;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.Toast;
 
+import com.kaopiz.kprogresshud.KProgressHUD;
+import com.umeng.analytics.MobclickAgent;
+import com.zm.zmbletool.MyApplication;
 import com.zm.zmbletool.R;
-import com.zm.zmbletool.adapter.BleRVAdapter;
-import com.zm.zmbletool.adapter.MsgAdapter;
-import com.zm.zmbletool.bean.BleBean;
 import com.zm.zmbletool.mvp.MVPBaseActivity;
-import com.zm.zmbletool.services.BluetoothLeService;
-import com.zm.zmbletool.ui.classicclient.ClassicClientActivity;
+import com.zm.zmbletool.services.SampleGattAttributes;
+import com.zm.zmbletool.ui.bleclient.BleClientActivity;
 import com.zm.zmbletool.ui.classicclient.ClassicScanActivity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import static com.zm.zmbletool.services.BluetoothLeService.ACTION_DATA_AVAILABLE;
-import static com.zm.zmbletool.services.BluetoothLeService.ACTION_GATT_CONNECTED;
-import static com.zm.zmbletool.services.BluetoothLeService.ACTION_GATT_DISCONNECTED;
 
 
 /**
@@ -48,12 +41,14 @@ public class BleActivity extends MVPBaseActivity<BleContract.View, BlePresenter>
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
     private Toolbar mToolbar;
-    private RecyclerView mRvContent;
-    private BleRVAdapter mAdapter;
-    private List<BluetoothGattService> mList;
     private String mDeviceName;
     private String mDeviceAddress;
-
+    private KProgressHUD kProgressHUD;
+    private ExpandableListView mGattServicesList;
+    private final String LIST_NAME = "NAME";
+    private final String LIST_UUID = "UUID";
+    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
+            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
 
     @Override
     public void initData(Bundle bundle) {
@@ -94,18 +89,17 @@ public class BleActivity extends MVPBaseActivity<BleContract.View, BlePresenter>
         });
 
 
-        mRvContent = findViewById(R.id.rv_content);
-        mList = new ArrayList<>();
-        initRV();
+        kProgressHUD = KProgressHUD.create(this)
+                .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                .setCancellable(false)
+                .setAnimationSpeed(2)
+                .setDimAmount(0.5f)
+                .show();
+
+        mGattServicesList = findViewById(R.id.gatt_services_list);
+        mGattServicesList.setOnChildClickListener(servicesListClickListner);
     }
 
-    private void initRV() {
-        mAdapter = new BleRVAdapter(BleActivity.this
-                , R.layout.rv_ble, mList);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        mRvContent.setLayoutManager(layoutManager);
-        mRvContent.setAdapter(mAdapter);
-    }
 
     @Override
     public void doBusiness() {
@@ -127,12 +121,14 @@ public class BleActivity extends MVPBaseActivity<BleContract.View, BlePresenter>
     protected void onResume() {
         super.onResume();
         mPresenter.registerReceiver(getApplicationContext(), mDeviceAddress);
+        MobclickAgent.onResume(this);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         mPresenter.unregisterReceiver(getApplicationContext());
+        MobclickAgent.onPause(this);
     }
 
     @Override
@@ -159,9 +155,91 @@ public class BleActivity extends MVPBaseActivity<BleContract.View, BlePresenter>
         Toast.makeText(mActivity, msg, Toast.LENGTH_SHORT).show();
     }
 
+    @SuppressLint("NewApi")
     @Override
     public void backList(List<BluetoothGattService> supportedGattServices) {
-        mList = supportedGattServices;
-        mAdapter.notifyDataSetChanged();
+        displayGattServices(supportedGattServices);
+        kProgressHUD.dismiss();
     }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+    private void displayGattServices(List<BluetoothGattService> gattServices) {
+        if (gattServices == null) {
+            return;
+        }
+        String uuid = null;
+        String unknownServiceString = "Unknown service";
+        String unknownCharaString = "Unknown characteristic";
+        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
+        ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
+                = new ArrayList<ArrayList<HashMap<String, String>>>();
+        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+
+        // Loops through available GATT Services.
+        for (BluetoothGattService gattService : gattServices) {
+            HashMap<String, String> currentServiceData = new HashMap<String, String>();
+            uuid = gattService.getUuid().toString();
+            currentServiceData.put(
+                    LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
+            currentServiceData.put(LIST_UUID, uuid);
+            gattServiceData.add(currentServiceData);
+
+            ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
+                    new ArrayList<HashMap<String, String>>();
+            List<BluetoothGattCharacteristic> gattCharacteristics =
+                    gattService.getCharacteristics();
+            ArrayList<BluetoothGattCharacteristic> charas =
+                    new ArrayList<BluetoothGattCharacteristic>();
+
+            // Loops through available Characteristics.
+            for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                charas.add(gattCharacteristic);
+                HashMap<String, String> currentCharaData = new HashMap<String, String>();
+                uuid = gattCharacteristic.getUuid().toString();
+                currentCharaData.put(
+                        LIST_NAME, SampleGattAttributes.lookup(uuid, unknownCharaString));
+                currentCharaData.put(LIST_UUID, uuid);
+                gattCharacteristicGroupData.add(currentCharaData);
+            }
+            mGattCharacteristics.add(charas);
+            gattCharacteristicData.add(gattCharacteristicGroupData);
+        }
+
+        SimpleExpandableListAdapter gattServiceAdapter = new SimpleExpandableListAdapter(
+                this,
+                gattServiceData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2},
+                gattCharacteristicData,
+                android.R.layout.simple_expandable_list_item_2,
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2}
+        );
+        mGattServicesList.setAdapter(gattServiceAdapter);
+
+    }
+
+
+    private final ExpandableListView.OnChildClickListener servicesListClickListner =
+            new ExpandableListView.OnChildClickListener() {
+                @RequiresApi(api = Build.VERSION_CODES.JELLY_BEAN_MR2)
+                @Override
+                public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
+                                            int childPosition, long id) {
+                    if (mGattCharacteristics != null) {
+                        BluetoothGattCharacteristic characteristic =
+                                mGattCharacteristics.get(groupPosition).get(childPosition);
+                        if (characteristic != null) {
+                            MyApplication.getInstance().setCharacteristic(characteristic);
+                            Intent intent = new Intent(BleActivity.this,
+                                    BleClientActivity.class);
+                            startActivity(intent);
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            };
 }

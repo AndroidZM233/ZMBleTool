@@ -1,6 +1,5 @@
 package com.zm.zmbletool.ui.ble;
 
-import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -12,15 +11,9 @@ import android.os.Build;
 import android.os.IBinder;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
-import android.widget.SimpleExpandableListAdapter;
-
-import com.zm.zmbletool.R;
+import com.zm.zmbletool.MyApplication;
 import com.zm.zmbletool.mvp.BasePresenterImpl;
 import com.zm.zmbletool.services.BluetoothLeService;
-import com.zm.zmbletool.services.SampleGattAttributes;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import static android.content.Context.BIND_AUTO_CREATE;
@@ -56,6 +49,8 @@ public class BlePresenter extends BasePresenterImpl<BleContract.View> implements
     @Override
     public void unbindService(Context context) {
         context.unbindService(mServiceConnection);
+        mBluetoothLeService.disconnect();
+        MyApplication.getInstance().setmBluetoothLeService(null);
         mBluetoothLeService = null;
     }
 
@@ -73,6 +68,7 @@ public class BlePresenter extends BasePresenterImpl<BleContract.View> implements
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (ACTION_GATT_CONNECTED.equals(action)) {
+                MyApplication.getInstance().setmBluetoothLeService(mBluetoothLeService);
             } else if (ACTION_GATT_DISCONNECTED.equals(action)) {
                 mView.openScanAct();
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {

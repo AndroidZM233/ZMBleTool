@@ -32,6 +32,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.kaopiz.kprogresshud.KProgressHUD;
+import com.umeng.analytics.MobclickAgent;
 import com.zm.utilslib.base.BaseActivity;
 import com.zm.utilslib.utils.SharedXmlUtil;
 import com.zm.zmbletool.MyApplication;
@@ -98,21 +99,20 @@ public class BleScanActivity extends BaseActivity implements CommonRvAdapter.OnI
         }
         mList = new ArrayList<RVBean>();
         initRV();
+
+        scanLeDevice(true);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        MobclickAgent.onResume(this);
+    }
 
-        // 为了确保设备上蓝牙能使用, 如果当前蓝牙设备没启用,弹出对话框向用户要求授予权限来启用
-        if (!mBluetoothAdapter.isEnabled()) {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            }
-        }
-
-        scanLeDevice(true);
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
     }
 
     private boolean checkBle() {
@@ -135,6 +135,14 @@ public class BleScanActivity extends BaseActivity implements CommonRvAdapter.OnI
             return true;
         }
 
+        // 为了确保设备上蓝牙能使用, 如果当前蓝牙设备没启用,弹出对话框向用户要求授予权限来启用
+        if (!mBluetoothAdapter.isEnabled()) {
+            if (!mBluetoothAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            }
+        }
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {//如果 API level 是大于等于 23(Android 6.0) 时
             //判断是否具有权限
             if (ContextCompat.checkSelfPermission(this,
@@ -151,9 +159,6 @@ public class BleScanActivity extends BaseActivity implements CommonRvAdapter.OnI
             }
         }
         mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-        if (mBluetoothLeScanner==null){
-            return true;
-        }
         return false;
     }
 
@@ -273,6 +278,12 @@ public class BleScanActivity extends BaseActivity implements CommonRvAdapter.OnI
     @Override
     protected void onStop() {
         super.onStop();
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         scanLeDevice(false);
     }
 
@@ -282,6 +293,9 @@ public class BleScanActivity extends BaseActivity implements CommonRvAdapter.OnI
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
+        } else {
+            mBluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+            scanLeDevice(true);
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

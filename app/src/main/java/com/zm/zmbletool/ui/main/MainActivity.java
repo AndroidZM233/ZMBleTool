@@ -1,26 +1,36 @@
 package com.zm.zmbletool.ui.main;
 
 
+import android.Manifest;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 
+import com.umeng.analytics.MobclickAgent;
+import com.umeng.message.PushAgent;
+import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.Permission;
+import com.yanzhenjie.permission.PermissionListener;
+import com.yanzhenjie.permission.Rationale;
+import com.yanzhenjie.permission.RationaleListener;
 import com.zm.utilslib.view.MovingView.MovingImageView;
 import com.zm.utilslib.view.MovingView.MovingViewAnimator;
 import com.zm.zmbletool.R;
 import com.zm.zmbletool.mvp.MVPBaseActivity;
-import com.zm.zmbletool.ui.ble.BleActivity;
+import com.zm.zmbletool.ui.about.AboutActivity;
 import com.zm.zmbletool.ui.ble.BleScanActivity;
-import com.zm.zmbletool.ui.classicclient.ClassicClientActivity;
-import com.zm.zmbletool.ui.classicclient.ClassicScanActivity;
 import com.zm.zmbletool.ui.classicclient.ClientSetUUIDActivity;
-import com.zm.zmbletool.ui.classicservice.ClassicServiceActivity;
 import com.zm.zmbletool.ui.classicservice.ServiceSetUUIDActivity;
+
+import java.util.List;
 
 
 /**
@@ -42,7 +52,6 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
 
     @Override
     public void initData(Bundle bundle) {
-
     }
 
     @Override
@@ -104,6 +113,25 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
                 onOpen();
             }
         });
+
+
+        mNvMenu.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.group_item_share_project:
+                        break;
+                    case R.id.item_about:
+                        openAct(getApplicationContext(), AboutActivity.class);
+                        break;
+                    default:
+                        break;
+                }
+                item.setCheckable(false);
+                mDlRoot.closeDrawer(GravityCompat.START);
+                return true;
+            }
+        });
     }
 
 
@@ -136,5 +164,50 @@ public class MainActivity extends MVPBaseActivity<MainContract.View, MainPresent
         }
     }
 
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        PushAgent.getInstance(getApplicationContext()).onAppStart();
+        permission();
+        MobclickAgent.setDebugMode(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
+    }
+
+    private void permission() {
+        AndPermission.with(MainActivity.this)
+                .permission(Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                .callback(listener)
+                .rationale(new RationaleListener() {
+                    @Override
+                    public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+                        AndPermission.rationaleDialog(MainActivity.this, rationale).show();
+                    }
+                }).start();
+    }
+
+    PermissionListener listener = new PermissionListener() {
+        @Override
+        public void onSucceed(int requestCode, @NonNull List<String> grantPermissions) {
+        }
+
+        @Override
+        public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
+            // 用户否勾选了不再提示并且拒绝了权限，那么提示用户到设置中授权。
+            if (AndPermission.hasAlwaysDeniedPermission(MainActivity.this, deniedPermissions)) {
+                AndPermission.defaultSettingDialog(MainActivity.this, 300).show();
+            }
+        }
+    };
 
 }

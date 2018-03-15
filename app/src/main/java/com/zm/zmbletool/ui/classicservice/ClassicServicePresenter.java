@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
+import android.content.Intent;
 import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
@@ -45,11 +46,15 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
     public void startBluetooth(Context context) {
         this.mContext = context;
         defaultAdapter = BluetoothAdapter.getDefaultAdapter();
+
         if (defaultAdapter != null) {
             if (!defaultAdapter.isEnabled()) {
                 defaultAdapter.enable();
             }
 
+            while (!defaultAdapter.isEnabled()) {
+
+            }
             //启动服务器监听线程
             synchronized (this) {
                 if (mServerSocketThread == null) {
@@ -103,7 +108,7 @@ public class ClassicServicePresenter extends BasePresenterImpl<ClassicServiceCon
                         mReceiveThread.start();
                     }
 
-                } catch (IOException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                     Log.d(TAG, "ServerSocketThread: IOException");
 //                    mView.showStatus("连接断开");

@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zm.utilslib.base.BaseActivity;
 import com.zm.utilslib.utils.SharedXmlUtil;
 import com.zm.zmbletool.R;
@@ -72,6 +73,18 @@ public class ServiceSetUUIDActivity extends BaseActivity {
             default:
                 break;
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
     }
 
 }

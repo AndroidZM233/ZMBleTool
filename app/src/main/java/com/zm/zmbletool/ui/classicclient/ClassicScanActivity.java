@@ -23,6 +23,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.kaopiz.kprogresshud.KProgressHUD;
+import com.umeng.analytics.MobclickAgent;
 import com.zm.utilslib.base.BaseActivity;
 import com.zm.utilslib.bean.MsgEvent;
 import com.zm.utilslib.utils.SharedXmlUtil;
@@ -217,6 +218,18 @@ public class ClassicScanActivity extends BaseActivity implements CommonRvAdapter
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         stopDiscovery();
@@ -227,6 +240,9 @@ public class ClassicScanActivity extends BaseActivity implements CommonRvAdapter
         if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
+        }else {
+            //开始搜索
+            startDiscovery();
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

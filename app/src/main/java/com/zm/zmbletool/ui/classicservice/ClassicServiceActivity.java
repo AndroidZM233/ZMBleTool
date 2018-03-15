@@ -1,6 +1,9 @@
 package com.zm.zmbletool.ui.classicservice;
 
 
+import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -20,6 +23,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.umeng.analytics.MobclickAgent;
 import com.zm.utilslib.utils.DateUtils;
 import com.zm.utilslib.utils.SharedXmlUtil;
 import com.zm.utilslib.utils.data.ByteUtils;
@@ -39,7 +43,7 @@ import java.util.List;
  */
 
 public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContract.View, ClassicServicePresenter> implements ClassicServiceContract.View {
-
+    private static final int REQUEST_ENABLE_BT = 1;
     private Toolbar mToolbar;
     private RecyclerView mRvContent;
     private EditText mEtSendmessage;
@@ -53,8 +57,25 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
 
     @Override
     public void initData(Bundle bundle) {
-
+//        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+//        // 为了确保设备上蓝牙能使用, 如果当前蓝牙设备没启用,弹出对话框向用户要求授予权限来启用
+//        if (!mBluetoothAdapter.isEnabled()) {
+//            if (!mBluetoothAdapter.isEnabled()) {
+//                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+//                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+//            }
+//        }
     }
+
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+//            finish();
+//            return;
+//        }
+//        super.onActivityResult(requestCode, resultCode, data);
+//    }
+
 
     @Override
     public int bindLayout() {
@@ -147,6 +168,18 @@ public class ClassicServiceActivity extends MVPBaseActivity<ClassicServiceContra
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mPresenter.startBluetooth(getApplicationContext());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        MobclickAgent.onResume(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        MobclickAgent.onPause(this);
     }
 
     @Override

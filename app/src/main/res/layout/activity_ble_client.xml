@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#f2f0eb"
+    android:orientation="vertical">
+
+    <include layout="@layout/toolbar" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <CheckBox
+            android:id="@+id/cb_notification"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="开启通知"
+            android:textColor="@color/black"
+            android:visibility="gone" />
+
+
+    </LinearLayout>
+
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/rv_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1">
+
+    </android.support.v7.widget.RecyclerView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#aaffffff"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/et_sendmessage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/edittext_login"
+            android:minHeight="40dp"
+            android:paddingBottom="1dp"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="3dp"
+            android:singleLine="true"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_more"
+            android:layout_width="32dip"
+            android:layout_height="32dip"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="10dp"
+            android:background="@drawable/type_select_btn" />
+
+        <Button
+            android:id="@+id/btn_send"
+            android:layout_width="70dp"
+            android:layout_height="32dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/chat_send_btn_selector"
+            android:text="发送"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_read"
+            android:layout_width="70dp"
+            android:layout_height="32dp"
+            android:layout_marginRight="4dp"
+            android:background="@drawable/chat_send_btn_selector"
+            android:text="读取"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rl_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#aaffffff"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+
+        <CheckBox
+            android:id="@+id/cb_send"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="发送数据（Hex）"
+            android:textColor="@color/gray" />
+
+        <CheckBox
+            android:id="@+id/cb_receive"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="接收数据（Hex）"
+            android:textColor="@color/gray" />
+
+
+    </LinearLayout>
+</LinearLayout>

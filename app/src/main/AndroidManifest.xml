@@ -6,6 +6,11 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <!--动态申请位置权限-->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
         android:name=".MyApplication"
@@ -54,6 +59,27 @@
         <activity
             android:name=".ui.ble.BleScanActivity"
             android:windowSoftInputMode="adjustPan|stateHidden" />
+
+        <activity
+            android:name=".ui.bleclient.BleClientActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+
+        <activity
+            android:name=".ui.about.AboutActivity"
+            android:windowSoftInputMode="adjustPan|stateHidden" />
+
+        <service android:name=".services.BluetoothLeService" />
+
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="5a5300e0f43e4843d100026c" />
+        <meta-data
+            android:name="UMENG_MESSAGE_SECRET"
+            android:value="2361b7639d5bfd6239fb79b854abf7a4">
+        </meta-data>
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="ZMBleTool" />
     </application>
 
 </manifest>

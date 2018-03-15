@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.zm.utilslib.bean.MsgEvent;
 import com.zm.utilslib.utils.data.ByteUtils;
@@ -74,6 +75,7 @@ public class BluetoothLeService extends Service {
             }
         }
 
+        //discoverServices 搜索连接设备所支持的service。
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             if (status == BluetoothGatt.GATT_SUCCESS) {
@@ -83,6 +85,7 @@ public class BluetoothLeService extends Service {
             }
         }
 
+        //readCharacteristic 读取指定的characteristic。
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt,
                                          BluetoothGattCharacteristic characteristic,
@@ -92,10 +95,24 @@ public class BluetoothLeService extends Service {
             }
         }
 
+        //setCharacteristicNotification 设置当指定characteristic值变化时，发出通知。
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt,
                                             BluetoothGattCharacteristic characteristic) {
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
+        }
+
+        //写入回调
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+            if (status == BluetoothGatt.GATT_SUCCESS) {
+                EventBus.getDefault().post(new MsgEvent("GATT_WRITE", "写入成功"));
+            } else if (status == BluetoothGatt.GATT_FAILURE) {
+                EventBus.getDefault().post(new MsgEvent("GATT_WRITE", "写入失败"));
+            } else if (status == BluetoothGatt.GATT_WRITE_NOT_PERMITTED) {
+                EventBus.getDefault().post(new MsgEvent("GATT_WRITE", "写入没有权限"));
+            }
         }
     };
 
@@ -138,9 +155,9 @@ public class BluetoothLeService extends Service {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
             if (data != null && data.length > 0) {
+                EventBus.getDefault().post(new MsgEvent("EXTRA_DATA", data));
                 String hexString = ByteUtils.toHexString(data);
                 intent.putExtra(EXTRA_DATA, hexString + "\n");
-                EventBus.getDefault().post(new MsgEvent("info", hexString));
             }
         }
         sendBroadcast(intent);
@@ -306,7 +323,9 @@ public class BluetoothLeService extends Service {
      * @return A {@code List} of supported services.
      */
     public List<BluetoothGattService> getSupportedGattServices() {
-        if (mBluetoothGatt == null) return null;
+        if (mBluetoothGatt == null) {
+            return null;
+        }
 
         return mBluetoothGatt.getServices();
     }
